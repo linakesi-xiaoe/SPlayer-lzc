@@ -1,0 +1,19 @@
+lzc-sdk-version: 0.1
+name: SPlayer
+package: iamxiaoe.lzcapp.splayer
+version: 0.0.1
+description: 
+license: https://choosealicense.com/licenses/mit/
+homepage: https://github.com/imsyy/SPlayer
+author: imsyy
+application:
+  subdomain: splayer
+  image: registry.lazycat.cloud/splayer:0.0.1
+  routes:
+    - /=http://splayer.iamxiaoe.lzcapp.splayer.lzcapp:25884
+  depends_on:
+    - splayer  
+    
+services:
+  splayer:
+    image: registry.lazycat.cloud/splayer:0.0.1

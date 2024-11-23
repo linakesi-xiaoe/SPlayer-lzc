@@ -1,20 +1,17 @@
 # build
 FROM node:20-alpine AS builder
-
-RUN apk update && apk add --no-cache git
+RUN sed -i 's#https\?://dl-cdn.alpinelinux.org/alpine#https://mirrors.tuna.tsinghua.edu.cn/alpine#g' /etc/apk/repositories; apk update; apk add g++ dotnet6-runtime;
 
 WORKDIR /app
-
 COPY package*.json ./
-
-RUN npm install
+RUN npm install --registry=https://registry.npmmirror.com
 
 COPY . .
 
 # add .env.example to .env
 RUN [ ! -e ".env" ] && cp .env.example .env || true
 
-RUN npm run build
+RUN npx electron-vite build
 
 # nginx
 FROM nginx:1.27-alpine-slim AS app
