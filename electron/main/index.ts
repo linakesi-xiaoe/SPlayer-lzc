@@ -52,7 +52,7 @@ class MainProcess {
     app.on("ready", async () => {
       log.info("🚀 Application Process Startup");
       // 设置应用程序名称
-      electronApp.setAppUserModelId(app.getName());
+      electronApp.setAppUserModelId("com.imsyy.splayer");
       // 初始化 store
       this.store = initStore();
       // 启动主服务进程

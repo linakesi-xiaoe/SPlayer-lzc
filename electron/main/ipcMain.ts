@@ -17,13 +17,14 @@ import { Thumbar } from "./thumbar";
 import { StoreType } from "./store";
 import { isDev, getFileID, getFileMD5 } from "./utils";
 import { isShortcutRegistered, registerShortcut, unregisterShortcuts } from "./shortcut";
-import { join, basename, resolve } from "path";
+import { join, basename, resolve, relative, isAbsolute } from "path";
 import { download } from "electron-dl";
 import { checkUpdate, startDownloadUpdate } from "./update";
 import fs from "fs/promises";
 import log from "../main/logger";
 import Store from "electron-store";
 import fg from "fast-glob";
+import openLoginWin from "./loginWin";
 
 // 注册 ipcMain
 const initIpcMain = (
@@ -172,8 +173,11 @@ const initWinIpcMain = (
   // 遍历音乐文件
   ipcMain.handle("get-music-files", async (_, dirPath: string) => {
     try {
+      // 规范化路径
+      const filePath = resolve(dirPath).replace(/\\/g, "/");
+      console.info(`📂 Fetching music files from: ${filePath}`);
       // 查找指定目录下的所有音乐文件
-      const musicFiles = await fg("**/*.{mp3,wav,flac}", { cwd: dirPath });
+      const musicFiles = await fg("**/*.{mp3,wav,flac}", { cwd: filePath });
       // 解析元信息
       const metadataPromises = musicFiles.map(async (file) => {
         const filePath = join(dirPath, file);
@@ -535,6 +539,9 @@ const initWinIpcMain = (
 
   // 开始下载更新
   ipcMain.on("start-download-update", () => startDownloadUpdate());
+
+  // 新建窗口
+  ipcMain.on("open-login-web", () => openLoginWin(win!));
 };
 
 // lyric
@@ -618,6 +625,16 @@ const initLyricIpcMain = (
     } else {
       lyricWin.setIgnoreMouseEvents(false);
     }
+  });
+
+  // 检查是否是子文件夹
+  ipcMain.handle("check-if-subfolder", (_, localFilesPath: string[], selectedDir: string) => {
+    const resolvedSelectedDir = resolve(selectedDir);
+    const allPaths = localFilesPath.map((p) => resolve(p));
+    return allPaths.some((existingPath) => {
+      const relativePath = relative(existingPath, resolvedSelectedDir);
+      return relativePath && !relativePath.startsWith("..") && !isAbsolute(relativePath);
+    });
   });
 };
 
